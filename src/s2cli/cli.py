@@ -25,9 +25,15 @@ app.add_typer(author_app, name="author")
 console = Console()
 
 
-def get_api(api_key: str | None = None) -> SemanticScholarAPI:
+def get_api(
+    api_key: str | None = None,
+    no_retry: bool = False,
+) -> SemanticScholarAPI:
     """Get API client instance."""
-    return SemanticScholarAPI(api_key=api_key)
+    return SemanticScholarAPI(
+        api_key=api_key,
+        retry_enabled=not no_retry,
+    )
 
 
 def is_interactive() -> bool:
@@ -126,6 +132,7 @@ def search(
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     bibtex_output: Annotated[bool, typer.Option("--bibtex", "-b", help="Output as BibTeX")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Search for papers by keyword.
@@ -135,7 +142,7 @@ def search(
         s2cli search "transformers" --year 2020-2024 --min-citations 100
         s2cli search "BERT" --json | jq '.results[0]'
     """
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.search_papers(
             query=query,
@@ -169,6 +176,7 @@ def paper(
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     bibtex_output: Annotated[bool, typer.Option("--bibtex", "-b", help="Output as BibTeX")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get paper details by ID.
@@ -183,7 +191,7 @@ def paper(
         s2cli paper ARXIV:1706.03762
         s2cli paper DOI:10.18653/v1/N18-3011 --bibtex
     """
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         if len(paper_ids) == 1:
             result = api.get_paper(paper_ids[0], fields=fields)
@@ -207,10 +215,11 @@ def citations(
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     bibtex_output: Annotated[bool, typer.Option("--bibtex", "-b", help="Output as BibTeX")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get papers that cite this paper."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.get_paper_citations(paper_id, fields=fields, limit=limit, offset=offset)
         meta = {"paper_id": paper_id, "type": "citations", "limit": limit, "offset": offset}
@@ -230,10 +239,11 @@ def references(
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     bibtex_output: Annotated[bool, typer.Option("--bibtex", "-b", help="Output as BibTeX")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get papers cited by this paper."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.get_paper_references(paper_id, fields=fields, limit=limit, offset=offset)
         meta = {"paper_id": paper_id, "type": "references", "limit": limit, "offset": offset}
@@ -253,10 +263,11 @@ def recommend(
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     bibtex_output: Annotated[bool, typer.Option("--bibtex", "-b", help="Output as BibTeX")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get paper recommendations based on a seed paper."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.get_recommendations(paper_id, fields=fields, limit=limit, pool=pool)
         papers = result.get("recommendedPapers", [])
@@ -272,13 +283,14 @@ def recommend(
 @app.command()
 def bibtex(
     paper_ids: Annotated[list[str], typer.Argument(help="Paper ID(s)")],
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Export BibTeX citations for papers.
 
     Shortcut for: s2cli paper <ids> --bibtex
     """
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         bibtex_fields = "paperId,title,year,authors,venue,externalIds,journal,publicationVenue,abstract,openAccessPdf"
 
@@ -304,10 +316,11 @@ def author_get(
     author_id: Annotated[str, typer.Argument(help="Author ID")],
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get author details by ID."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.get_author(author_id, fields=fields)
         output_results([result], data_type="author", use_json=json_output, include_bibtex_in_json=False)
@@ -325,10 +338,11 @@ def author_search(
     offset: Annotated[int, typer.Option("--offset", help="Pagination offset")] = 0,
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Search for authors by name."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.search_authors(query, fields=fields, limit=limit, offset=offset)
         meta = {"query": query, "limit": limit, "offset": offset}
@@ -350,10 +364,11 @@ def author_papers(
     fields: Annotated[Optional[str], typer.Option("--fields", help="API fields to return")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
     bibtex_output: Annotated[bool, typer.Option("--bibtex", "-b", help="Output as BibTeX")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get papers by an author."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.get_author_papers(author_id, fields=fields, limit=limit, offset=offset)
         meta = {"author_id": author_id, "limit": limit, "offset": offset}
@@ -371,10 +386,11 @@ def author_papers(
 @app.command()
 def datasets(
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """List available dataset releases."""
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         result = api.list_releases()
         if json_output or not is_interactive():
@@ -397,6 +413,7 @@ def dataset(
     release_id: Annotated[str, typer.Argument(help="Release ID (e.g., '2024-01-01' or 'latest')")],
     name: Annotated[Optional[str], typer.Option("--name", help="Dataset name for download links")] = None,
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
+    no_retry: Annotated[bool, typer.Option("--no-retry", help="Fail immediately on rate limit")] = False,
     api_key: Annotated[Optional[str], typer.Option("--api-key", envvar="S2_API_KEY", help="API key")] = None,
 ):
     """Get dataset info or download links.
@@ -404,7 +421,7 @@ def dataset(
     Without --name: shows datasets in the release.
     With --name: shows download links for that dataset.
     """
-    api = get_api(api_key)
+    api = get_api(api_key, no_retry=no_retry)
     try:
         if name:
             result = api.get_dataset_links(release_id, name)

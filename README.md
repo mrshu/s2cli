@@ -11,29 +11,46 @@ pip install s2cli
 ## Quick Start
 
 ```bash
-# Search for papers
+# Search for papers (shows table in terminal)
 s2cli search "attention mechanism transformers"
 
-# Get paper details (supports DOI, arXiv ID, S2 ID)
-s2cli paper DOI:10.48550/arXiv.1706.03762
+# Get paper details
+s2cli paper ARXIV:1706.03762
 
 # Export BibTeX
-s2cli bibtex DOI:10.48550/arXiv.1706.03762 >> references.bib
+s2cli bibtex ARXIV:1706.03762 >> references.bib
 
 # Get papers citing this paper
-s2cli citations 649def34f8be52c8b66281af98ae884c09aef38b
+s2cli citations 204e3073870fae3d05bcbc2f6a8e263d9b72e776
 
 # Get paper recommendations
-s2cli recommend 649def34f8be52c8b66281af98ae884c09aef38b
+s2cli recommend 204e3073870fae3d05bcbc2f6a8e263d9b72e776
 ```
 
-## Features
+## Output Formats
 
-- **JSON output by default** - Structured, parseable output for scripts and AI agents
-- **BibTeX included** - Every paper result includes a BibTeX citation
-- **Multiple output formats** - `--format json|table|bibtex`
-- **Search filters** - `--year`, `--min-citations`, `--open-access`, `--venue`
-- **Batch operations** - Look up multiple papers at once
+s2cli is designed to work seamlessly for both humans and AI agents:
+
+| Context | Default Output | Behavior |
+|---------|----------------|----------|
+| Terminal (interactive) | Human-readable table | Easy to scan and read |
+| Piped to another command | Compact JSON | Machine-parseable for scripts |
+| `--json` flag | Pretty JSON | Explicit JSON when you need it |
+| `--bibtex` / `-b` flag | BibTeX | Ready for LaTeX |
+
+```bash
+# Terminal: shows a nice table
+s2cli search "transformers"
+
+# Piped: automatically outputs JSON for jq, scripts, AI agents
+s2cli search "transformers" | jq '.results[0].title'
+
+# Explicit JSON (pretty-printed in terminal)
+s2cli search "transformers" --json
+
+# BibTeX output
+s2cli search "transformers" --bibtex
+```
 
 ## Commands
 
@@ -52,7 +69,7 @@ s2cli recommend 649def34f8be52c8b66281af98ae884c09aef38b
 
 | Command | Description |
 |---------|-------------|
-| `s2cli author <id>` | Get author details |
+| `s2cli author get <id>` | Get author details |
 | `s2cli author search <name>` | Search authors by name |
 | `s2cli author papers <id>` | Get author's papers |
 
@@ -63,41 +80,67 @@ s2cli recommend 649def34f8be52c8b66281af98ae884c09aef38b
 | `s2cli datasets` | List available dataset releases |
 | `s2cli dataset <release>` | Get dataset info |
 
+## Search Filters
+
+```bash
+# Filter by year
+s2cli search "LLM" --year 2023
+s2cli search "LLM" --year 2020-2024
+
+# Filter by minimum citations
+s2cli search "attention" --min-citations 1000
+
+# Only open access papers
+s2cli search "BERT" --open-access
+
+# Filter by venue
+s2cli search "vision" --venue "CVPR,ICCV"
+
+# Combine filters
+s2cli search "transformers" --year 2022- --min-citations 500 --open-access
+```
+
 ## Examples
 
 ### Human Workflows
 
 ```bash
 # Find influential papers on a topic
-s2cli search "large language models" --min-citations 1000 -f table
+s2cli search "large language models" --min-citations 1000
 
 # Get all papers by an author
 s2cli author papers 1741101 --limit 50
 
 # Export bibliography for a set of papers
 s2cli bibtex paper1 paper2 paper3 > refs.bib
+
+# Explore citation network
+s2cli citations 204e3073870fae3d05bcbc2f6a8e263d9b72e776 --limit 20
 ```
 
-### AI Agent Workflows
+### AI Agent / Scripting Workflows
 
 ```bash
-# Quick context gathering (minimal fields)
-s2cli search "retrieval augmented generation" --fields paperId,title,tldr,citationCount
+# Quick context gathering (auto-JSON when piped)
+s2cli search "retrieval augmented generation" | jq '.results[:3]'
 
-# Batch lookup
-s2cli paper id1 id2 id3 --fields title,authors,year
+# Batch lookup with specific fields
+s2cli paper id1 id2 id3 --fields paperId,title,year,citationCount
 
-# Pipe to jq for filtering
-s2cli search "NLP" | jq '.results[] | select(.citationCount > 100)'
+# Get top cited paper
+s2cli search "NLP" --min-citations 5000 --limit 1 | jq '.results[0]'
+
+# Extract just titles
+s2cli search "vision transformers" | jq -r '.results[].title'
 ```
 
 ## Paper ID Formats
 
 The CLI accepts various paper ID formats:
 
-- Semantic Scholar ID: `649def34f8be52c8b66281af98ae884c09aef38b`
+- Semantic Scholar ID: `204e3073870fae3d05bcbc2f6a8e263d9b72e776`
 - DOI: `DOI:10.18653/v1/N18-3011` or `10.18653/v1/N18-3011`
-- arXiv: `ARXIV:2106.15928` or `arXiv:2106.15928`
+- arXiv: `ARXIV:1706.03762` or `arXiv:1706.03762`
 - CorpusId: `CorpusId:215416146`
 - PubMed: `PMID:123456`
 
@@ -114,6 +157,15 @@ Or pass it directly:
 ```bash
 s2cli search "query" --api-key your_key_here
 ```
+
+## Design Philosophy
+
+Based on [CLI best practices](https://clig.dev/) and [GitHub CLI](https://cli.github.com/) patterns:
+
+1. **Human-first by default** - Tables and readable output in terminals
+2. **Machine-friendly when piped** - Automatic JSON for scripts and AI agents
+3. **Explicit overrides** - `--json` and `--bibtex` flags when you need control
+4. **BibTeX included** - Every paper result can include a citation
 
 ## License
 

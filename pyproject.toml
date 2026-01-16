@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "s2cli"
-version = "0.1.0"
+version = "0.1.1"
 description = "A CLI for Semantic Scholar API - designed for humans and AI agents"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Your Name", email = "you@example.com" }
+    { name = "mrshu" }
 ]
 keywords = ["semantic-scholar", "cli", "research", "papers", "citations", "bibtex"]
 classifiers = [
@@ -41,9 +41,9 @@ dev = [
 s2cli = "s2cli.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/s2cli"
-Documentation = "https://github.com/yourusername/s2cli#readme"
-Repository = "https://github.com/yourusername/s2cli"
+Homepage = "https://github.com/mrshu/s2cli"
+Documentation = "https://github.com/mrshu/s2cli#readme"
+Repository = "https://github.com/mrshu/s2cli"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/s2cli"]

@@ -16,6 +16,14 @@ uv pip install s2cli
 
 ## Quick Start
 
+Run directly without installing using [uvx](https://docs.astral.sh/uv/guides/tools/):
+
+```bash
+uvx s2cli search "attention mechanism transformers"
+```
+
+Or after installing:
+
 ```bash
 # Search for papers (shows table in terminal)
 s2cli search "attention mechanism transformers"

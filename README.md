@@ -8,6 +8,12 @@ A command-line interface for the [Semantic Scholar API](https://api.semanticscho
 pip install s2cli
 ```
 
+Or with [uv](https://github.com/astral-sh/uv):
+
+```bash
+uv pip install s2cli
+```
+
 ## Quick Start
 
 ```bash

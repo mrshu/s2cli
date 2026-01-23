@@ -228,7 +228,7 @@ class SemanticScholarAPI:
             if remaining >= 1:
                 msg = f"Rate limited. Retry {attempt}/{max_attempts} in {int(remaining)}s (at {retry_time})..."
             else:
-                msg = f"Rate limited. Retrying now..."
+                msg = "Rate limited. Retrying now..."
 
             self.status_callback(msg)
             time.sleep(min(0.5, remaining))

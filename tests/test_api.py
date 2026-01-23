@@ -67,7 +67,7 @@ class TestSearchPapers:
         httpx_mock.add_response(json={"data": [], "total": 0})
 
         api = SemanticScholarAPI()
-        result = api.search_papers(
+        api.search_papers(
             "test",
             year="2020-2023",
             min_citation_count=100,

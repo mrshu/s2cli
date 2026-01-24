@@ -31,7 +31,7 @@ def format_paper_table(papers: list[dict[str, Any]], console: Console | None = N
     table.add_column("ID", style="dim", max_width=12)
     table.add_column("Year", justify="right")
     table.add_column("Citations", justify="right")
-    table.add_column("Title", max_width=60)
+    table.add_column("Title")
     table.add_column("Authors", max_width=30)
 
     for paper in papers:
@@ -41,7 +41,7 @@ def format_paper_table(papers: list[dict[str, Any]], console: Console | None = N
         paper_id = paper.get("paperId", "")[:12] if paper.get("paperId") else ""
         year = str(paper.get("year", "")) if paper.get("year") else ""
         citations = str(paper.get("citationCount", "")) if paper.get("citationCount") else ""
-        title = _truncate(paper.get("title", ""), 60)
+        title = paper.get("title", "")
 
         # Format authors
         authors = paper.get("authors", [])
@@ -113,7 +113,7 @@ def format_citation_table(citations: list[dict[str, Any]], console: Console | No
     table.add_column("ID", style="dim", max_width=12)
     table.add_column("Year", justify="right")
     table.add_column("Citations", justify="right")
-    table.add_column("Title", max_width=60)
+    table.add_column("Title")
     table.add_column("Influential", justify="center")
 
     for item in citations:
@@ -127,7 +127,7 @@ def format_citation_table(citations: list[dict[str, Any]], console: Console | No
         paper_id = paper.get("paperId", "")[:12] if paper.get("paperId") else ""
         year = str(paper.get("year", "")) if paper.get("year") else ""
         citation_count = str(paper.get("citationCount", "")) if paper.get("citationCount") else ""
-        title = _truncate(paper.get("title", ""), 60)
+        title = paper.get("title", "")
         influential = "[green]Yes[/green]" if is_influential else ""
 
         table.add_row(paper_id, year, citation_count, title, influential)
